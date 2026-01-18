@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Mirror</title>
+    <style>
+        /* CSS Styles */
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 10px; /* Add padding for small screens */
+            box-sizing: border-box;
+        }
+
+        .mirror-container {
+            text-align: center;
+            background-color: #fff;
+            border: 5px solid silver;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 100%; /* Set width to 100% for better mobile adaptation */
+            max-width: 300px;
+        }
+
+        #askButton {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #askButton:hover {
+            background-color: #2980b9;
+        }
+
+        #answer {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #e74c3c;
+        }
+
+        #questionInput {
+            width: 100%;
+            height: 60px; /* Increased height for better visibility */
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box; /* Ensures padding does not affect total width */
+            resize: none; /* Prevents resizing of input on some browsers */
+        }
+    </style>
+</head>
+<body>
+    <div class="mirror-container">
+        <h1>Magic Mirror</h1>
+        <textarea id="questionInput" placeholder="Type your question here..."></textarea>
+        <button id="askButton">Ask the Mirror</button>
+        <p id="answer"></p>
+    </div>
+
+    <script>
+        // JavaScript
+
+        // List of possible responses
+        const responses = [
+            "It's you, Asanwa, my love, always and forever!",
+            "Asanwa, you are the most stunning, without a doubt!",
+            "There's truly no one more beautiful than you, Asanwa.",
+            "My mirror shines brightest for you, Hope, my queen!",
+            "Nne, you are the fairest of them all, today and always!",
+            "No contest, Nne! You're the most beautiful girl in the world!",
+            "You, my darling Mma, are the most breathtakingly gorgeous!",
+            "It's always been you, Mma. Always.",
+            "Hope, it's you, and it will always only be you!",
+            "Nobody sexier than you my morning glory.",
+            "It can only be you, you are hotter than the sun itself.",
+            "You and you only that is why I want you to be my wife.",
+            "No one can even come close to your beauty, Hope. Not in a million years!"
+        ];
+
+        // List of responses for non-matching questions
+        const otherResponses = [
+            "Hmm, I'm just a magic mirror. Try asking something about beauty!",
+            "Ask me about beauty and I'll tell you more!",
+            "I can only answer questions about the most beautiful girl in the world!",
+            "Not sure about that, but I do know who's the most beautiful!",
+            "That’s a great question, but I’m all about beauty!"
+        ];
+
+        // Function to get a random response
+        function getRandomResponse(array) {
+            const randomIndex = Math.floor(Math.random() * array.length);
+            return array[randomIndex];
+        }
+
+        // Event listener for the button
+        document.getElementById('askButton').addEventListener('click', function() {
+            const questionInput = document.getElementById('questionInput').value.toLowerCase().trim();
+            const answerElement = document.getElementById('answer');
+
+            // Arrays of possible phrases
+            const magicPhrases = ["mirror mirror", "dear mirror", "mirror on the wall", "oh dear mirror"];
+            const beautyKeywords = ["beautiful", "hottest", "fairest", "sexiest", "cutest", "prettiest", "most beautiful"];
+
+            // Check if any of the magic phrases and beauty keywords are in the input
+            const containsMagicPhrase = magicPhrases.some(phrase => questionInput.includes(phrase));
+            const containsBeautyKeyword = beautyKeywords.some(keyword => questionInput.includes(keyword));
+
+            if (containsMagicPhrase && containsBeautyKeyword) {
+                answerElement.textContent = getRandomResponse(responses);
+            } else {
+                answerElement.textContent = getRandomResponse(otherResponses);
+            }
+        });
+    </script>
+</body>
+</html>
