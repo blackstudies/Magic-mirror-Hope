@@ -1,131 +1,282 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magic Mirror</title>
-    <style>
-        /* CSS Styles */
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Magic Mirror</title>
 
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 10px; /* Add padding for small screens */
-            box-sizing: border-box;
-        }
+  <style>
+    :root {
+      --bg-light: radial-gradient(circle at top, #f7f7f7, #ddd);
+      --bg-dark: radial-gradient(circle at top, #1b1b1b, #000);
+      --mirror-light: #fff;
+      --mirror-dark: #111;
+      --accent: #e74c3c;
+      --text-light: #000;
+      --text-dark: #f5f5f5;
+    }
 
-        .mirror-container {
-            text-align: center;
-            background-color: #fff;
-            border: 5px solid silver;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            width: 100%; /* Set width to 100% for better mobile adaptation */
-            max-width: 300px;
-        }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg-light);
+      transition: background 0.6s ease;
+    }
 
-        #askButton {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
+    body.dark {
+      background: var(--bg-dark);
+      color: var(--text-dark);
+    }
 
-        #askButton:hover {
-            background-color: #2980b9;
-        }
+    .mirror-container {
+      position: relative;
+      text-align: center;
+      background: var(--mirror-light);
+      border: 5px solid silver;
+      border-radius: 16px;
+      padding: 20px;
+      width: 100%;
+      max-width: 330px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      overflow: hidden;
+      transition: all 0.6s ease;
+    }
 
-        #answer {
-            margin-top: 20px;
-            font-size: 18px;
-            color: #e74c3c;
-        }
+    body.dark .mirror-container {
+      background: var(--mirror-dark);
+      color: var(--text-dark);
+      border-color: #aaa;
+    }
 
-        #questionInput {
-            width: 100%;
-            height: 60px; /* Increased height for better visibility */
-            padding: 10px;
-            margin-top: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box; /* Ensures padding does not affect total width */
-            resize: none; /* Prevents resizing of input on some browsers */
-        }
-    </style>
+    .mirror-container.glow {
+      border-color: var(--accent);
+      box-shadow: 0 0 35px rgba(231, 76, 60, 0.8);
+    }
+
+    /* Reflection shimmer */
+    .mirror-container::after {
+      content: "";
+      position: absolute;
+      top: -100%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        120deg,
+        transparent 40%,
+        rgba(255,255,255,0.25) 50%,
+        transparent 60%
+      );
+      transform: rotate(25deg);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .mirror-container.reflect::after {
+      animation: shimmer 1.5s ease-in-out;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%) rotate(25deg); opacity: 0; }
+      30% { opacity: 1; }
+      100% { transform: translateX(100%) rotate(25deg); opacity: 0; }
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 60px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      resize: none;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 18px;
+      font-size: 15px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background: #3498db;
+      color: white;
+    }
+
+    button:disabled {
+      background: #888;
+      cursor: not-allowed;
+    }
+
+    #answer {
+      margin-top: 20px;
+      font-size: 18px;
+      min-height: 60px;
+      color: var(--accent);
+    }
+
+    .controls {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .toggle {
+      background: #555;
+    }
+  </style>
 </head>
+
 <body>
-    <div class="mirror-container">
-        <h1>Magic Mirror</h1>
-        <textarea id="questionInput" placeholder="Type your question here..."></textarea>
-        <button id="askButton">Ask the Mirror</button>
-        <p id="answer"></p>
+  <div class="mirror-container" id="mirror">
+    <h1>Magic Mirror</h1>
+
+    <textarea id="questionInput" placeholder="Ask the mirror..."></textarea>
+
+    <div class="controls">
+      <button id="askButton">Ask</button>
+      <button class="toggle" id="modeToggle">🌙</button>
     </div>
 
-    <script>
-        // JavaScript
+    <p id="answer"></p>
+  </div>
 
-        // List of possible responses
-        const responses = [
-            "It's you, Asanwa, my love, always and forever!",
-            "Asanwa, you are the most stunning, without a doubt!",
-            "There's truly no one more beautiful than you, Asanwa.",
-            "My mirror shines brightest for you, Hope, my queen!",
-            "Nne, you are the fairest of them all, today and always!",
-            "No contest, Nne! You're the most beautiful girl in the world!",
-            "You, my darling Mma, are the most breathtakingly gorgeous!",
-            "It's always been you, Mma. Always.",
-            "Hope, it's you, and it will always only be you!",
-            "Nobody sexier than you my morning glory.",
-            "It can only be you, you are hotter than the sun itself.",
-            "You and you only that is why I want you to be my wife.",
-            "No one can even come close to your beauty, Hope. Not in a million years!"
-        ];
+  <script>
+    
+    const herName = "Hope"; 
+    const secretPhrase = "do you love me";
 
-        // List of responses for non-matching questions
-        const otherResponses = [
-            "Hmm, I'm just a magic mirror. Try asking something about beauty!",
-            "Ask me about beauty and I'll tell you more!",
-            "I can only answer questions about the most beautiful girl in the world!",
-            "Not sure about that, but I do know who's the most beautiful!",
-            "That’s a great question, but I’m all about beauty!"
-        ];
+    // RESPONSES
+    
+    const responses = [
+      `It is you, ${herName}. It has always been you.`,
+      `${herName}, the mirror sees no rival.`,
+      `Beauty itself learned from you, ${herName}.`,
+      `Without doubt, the fairest is you, love of my life.`,
+      `The world pauses when you enter, My Darling.`,
+      `It's you, Asanwa, my love, always and forever!`,
+      `Asanwa, you are the most stunning, without a doubt!`,
+      `There's truly no one more beautiful than you, Asanwa.`,
+      `My mirror shines brightest for you, Hope, my queen!`,
+      `Nne, you are the fairest of them all, today and always!`,
+      `No contest, Nne! You're the most beautiful girl in the world!`,
+      `You, my darling Mma, are the most breathtakingly gorgeous!`,
+      `It's always been you, Mma. Always.`,
+      `My Love, it's you, and it will always only be you!`,
+      `Nobody sexier than you my morning glory.`,
+      `It can only be you, you are hotter than the sun itself.`,
+      `You and you only that is why I want you to be my wife.`,
+      `No one can even come close to your beauty, My Love. Not in a million years!`
+    ];
 
-        // Function to get a random response
-        function getRandomResponse(array) {
-            const randomIndex = Math.floor(Math.random() * array.length);
-            return array[randomIndex];
-        }
+    const secretResponse = `Hear this truth, My Darling… I love you more than words, more than magic, more than anything.`;
 
-        // Event listener for the button
-        document.getElementById('askButton').addEventListener('click', function() {
-            const questionInput = document.getElementById('questionInput').value.toLowerCase().trim();
-            const answerElement = document.getElementById('answer');
+    const otherResponses = [
+      "Ask of beauty, and I shall answer.",
+      "The mirror awakens only for true questions.",
+      "Speak of beauty, and I will speak truth.",
+      "That question does not stir my magic."
+    ];
 
-            // Arrays of possible phrases
-            const magicPhrases = ["mirror mirror", "dear mirror", "mirror on the wall", "oh dear mirror"];
-            const beautyKeywords = ["beautiful", "hottest", "fairest", "sexiest", "cutest", "prettiest", "most beautiful"];
 
-            // Check if any of the magic phrases and beauty keywords are in the input
-            const containsMagicPhrase = magicPhrases.some(phrase => questionInput.includes(phrase));
-            const containsBeautyKeyword = beautyKeywords.some(keyword => questionInput.includes(keyword));
+    function random(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
 
-            if (containsMagicPhrase && containsBeautyKeyword) {
-                answerElement.textContent = getRandomResponse(responses);
-            } else {
-                answerElement.textContent = getRandomResponse(otherResponses);
-            }
-        });
-    </script>
+    function typeText(el, text, speed = 45) {
+      el.textContent = "";
+      let i = 0;
+      const interval = setInterval(() => {
+        el.textContent += text[i++];
+        if (i === text.length) clearInterval(interval);
+      }, speed);
+    }
+
+    function speak(text) {
+      if (!window.speechSynthesis) return;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.05;
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utterance);
+    }
+
+    // ======================
+    // ELEMENTS
+    // ======================
+    const mirror = document.getElementById("mirror");
+    const input = document.getElementById("questionInput");
+    const answer = document.getElementById("answer");
+    const askBtn = document.getElementById("askButton");
+    const toggleBtn = document.getElementById("modeToggle");
+
+    // ======================
+    // MAIN LOGIC
+    // ======================
+    function randomAccent() {
+      const h = Math.floor(Math.random() * 360);
+      const color = `hsl(${h}, 75%, 55%)`;
+      const colorAlpha = `hsla(${h}, 75%, 55%, 0.85)`;
+      return { color, colorAlpha };
+    }
+    askBtn.addEventListener("click", () => {
+      const q = input.value.toLowerCase().trim();
+      if (!q) return;
+
+      // pick a random accent for this answer and apply a temporary glow
+      const { color, colorAlpha } = randomAccent();
+      mirror.style.setProperty('--accent', color);
+      mirror.style.borderColor = color;
+      mirror.style.boxShadow = `0 0 35px ${colorAlpha}`;
+
+      askBtn.disabled = true;
+      mirror.classList.add("glow", "reflect");
+      answer.textContent = "The mirror is listening…";
+
+      const magicPhrases = ["mirror", "mirror mirror", "mirror on the wall"];
+      const beautyWords = ["beautiful", "fairest", "prettiest", "sexiest", "hottest"];
+
+      const hasMagic = magicPhrases.some(p => q.includes(p));
+      const hasBeauty = beautyWords.some(w => q.includes(w));
+
+      let response;
+
+      if (q.includes(secretPhrase)) {
+        response = secretResponse;
+      } else if (hasMagic && hasBeauty) {
+        response = random(responses);
+      } else {
+        response = random(otherResponses);
+      }
+
+      setTimeout(() => {
+        typeText(answer, response);
+        speak(response);
+        askBtn.disabled = false;
+        mirror.classList.remove("glow");
+        // remove the temporary inline glow/border so the original styling returns
+        mirror.style.boxShadow = '';
+        mirror.style.borderColor = '';
+      }, 1000);
+    });
+
+    // ======================
+    // DARK MODE
+    // ======================
+    toggleBtn.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      toggleBtn.textContent =
+        document.body.classList.contains("dark") ? "☀️" : "🌙";
+    });
+  </script>
 </body>
 </html>
